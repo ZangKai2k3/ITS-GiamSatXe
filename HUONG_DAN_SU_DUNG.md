@@ -1,138 +1,137 @@
-# HUONG DAN SU DUNG HE THONG GIAM SAT GIAO THONG ITS
+# HƯỚNG DẪN SỬ DỤNG HỆ THỐNG GIÁM SÁT GIAO THÔNG ITS
 
-Tai lieu nay huong dan chi tiet tung buoc danh cho can bo dieu hanh, quan tri vien hoac nguoi dung khong chuyen ve lap trinh de khoi dong, van hanh, theo doi va khai thac du lieu tu He thong ITS.
+Tài liệu này hướng dẫn chi tiết từng bước dành cho cán bộ điều hành, quản trị viên hoặc người dùng không chuyên về lập trình để khởi động, vận hành, theo dõi và khai thác dữ liệu từ Hệ thống ITS.
 
 ---
 
-## 1. CHUAN BI MOI TRUONG
+## 1. CHUẨN BỊ MÔI TRƯỜNG
 
-Truoc khi khoi dong ung dung, hay dam bao may tinh da duoc cai dat:
-- He dieu hanh: Windows 10/11 hoac Linux / macOS.
-- Trinh duyet web hien dai: Google Chrome, Microsoft Edge hoac Mozilla Firefox.
-- Python phien ban 3.10 tro len da duoc cai dat va them vao bien moi truong PATH.
+Trước khi khởi động ứng dụng, hãy đảm bảo máy tính đã được cài đặt:
+- Hệ điều hành: Windows 10/11 hoặc Linux / macOS.
+- Trình duyệt web hiện đại: Google Chrome, Microsoft Edge hoặc Mozilla Firefox.
+- Python phiên bản 3.10 trở lên đã được cài đặt và thêm vào biến môi trường PATH.
 
-Kiem tra bang cach mo PowerShell hoac Command Prompt:
+Kiểm tra bằng cách mở PowerShell hoặc Command Prompt:
 ```bash
 python --version
 ```
 
 ---
 
-## 2. KHOI DONG HE THONG
+## 2. KHỞI ĐỘNG HỆ THỐNG
 
-### 2.1. Khoi dong Web Dashboard (Giao dien chinh)
+### 2.1. Khởi động Web Dashboard (Giao diện chính)
 
-1. **Vi tri thao tac:** Cua so dong lenh (PowerShell hoac Terminal) tai thu muc goc cua du an: `D:\ITS-GiamSatXe`.
-2. **Hanh dong:** Nhap dong lenh sau va nhan phím Enter:
+1. **Vị trí thao tác:** Cửa sổ dòng lệnh (PowerShell hoặc Terminal) tại thư mục gốc của dự án: `D:\ITS-GiamSatXe`.
+2. **Hành động:** Nhập dòng lệnh sau và nhấn phím Enter:
    ```bash
    python run_dashboard.py
    ```
-3. **Ket qua mong doi:** Man hinh console hien thi thong bao khoi dong:
+3. **Kết quả mong đợi:** Màn hình console hiển thị thông báo khởi động:
    ```
    =================================================================
-      KHOI DONG HE THONG ITS WEB DASHBOARD
-      Dia chi truy cap: http://127.0.0.1:8000
-      Bam Ctrl+C de dung may chu
+      KHỞI ĐỘNG HỆ THỐNG ITS WEB DASHBOARD
+      Địa chỉ truy cập: http://127.0.0.1:8000
+      Bấm Ctrl+C để dừng máy chủ
    =================================================================
    ```
-4. **Cach xu ly neu gap loi:** Neu thong bao loi "Address already in use", co nghia cong 8000 da bi ung dung khac chiem dung. Khoi dong lai voi cong 8080:
+4. **Cách xử lý nếu gặp lỗi:** Nếu thông báo lỗi "Address already in use", có nghĩa cổng 8000 đã bị ứng dụng khác chiếm dụng. Khởi động lại với cổng 8080:
    ```bash
    python run_dashboard.py --port 8080
    ```
 
-### 2.2. Mo giao dien Web
+### 2.2. Mở giao diện Web
 
-1. **Hanh dong:** Mo trinh duyet web va nhap dia chi:
+1. **Hành động:** Mở trình duyệt web và nhập địa chỉ:
    ```
    http://127.0.0.1:8000
    ```
-2. **Ket qua mong doi:** Giao dien trung tam dieu hanh ITS mau toi (Dark Mode) xuat hien voi day du man hinh camera, cac the KPI thong ke va bieu do phan bo phuong tien.
+2. **Kết quả mong đợi:** Giao diện trung tâm điều hành ITS màu tối (Dark Mode) xuất hiện với đầy đủ màn hình camera, các thẻ KPI thống kê và biểu đồ phân bổ phương tiện.
 
 ---
 
-## 3. QUAN SAT VIDEO VA DOC CAC CHI SO
+## 3. QUAN SÁT VIDEO VÀ ĐỌC CÁC CHỈ SỐ
 
-### 3.1. Man hinh video thoi gian thuc
-- **Vi tri:** O ben trai giao dien, khung "Video Giam Sat Real-Time".
-- **Y nghia cac ky hieu tren man hinh:**
-  - **Vach 1 mau vang:** Vach dem phuong tien va bat dau do toc do. Phuong tien di xuong cham vach nay se duoc he thong ghi nhan ngay lap tuc.
-  - **Vach 2 mau xanh lo:** Vach chot toc do va phat hien vi pham. Phuong tien chay qua day se duoc he thong tinh toan van toc thuc te dua tren quang duong 8.0 met.
-  - **Khung hop bao (Bounding Box):**
-    - Khung xanh la cay: Phuong tien xe may hop le.
-    - Khung cam / tim: Phuong tien o to / xe tai hop le.
-    - Khung mau do: Phuong tien chay qua toc do quy dinh (> 50 km/h).
-  - **The thong tin tren xe:** Hien thi ID phuong tien, loai xe va toc do (vi du: `#24 Xe may | 32.5 km/h [Chot]`).
-  - **Bang HUD goc trai:** Hien thi tong so xe da qua vach va chi tiet tung loai xe.
+### 3.1. Màn hình video thời gian thực
+- **Vị trí:** Ở bên trái giao diện, khung "Video Giám Sát Real-Time".
+- **Ý nghĩa các ký hiệu trên màn hình:**
+  - **Vạch 1 màu vàng:** Vạch đếm phương tiện và bắt đầu đo tốc độ. Phương tiện đi xuống chạm vạch này sẽ được hệ thống ghi nhận ngay lập tức.
+  - **Vạch 2 màu xanh lơ:** Vạch chốt tốc độ và phát hiện vi phạm. Phương tiện chạy qua đây sẽ được hệ thống tính toán vận tốc thực tế dựa trên quãng đường 8.0 mét.
+  - **Khung hộp bao (Bounding Box):**
+    - Khung xanh lá cây: Phương tiện xe máy hợp lệ.
+    - Khung cam / tím: Phương tiện ô tô / xe tải hợp lệ.
+    - Khung màu đỏ: Phương tiện chạy quá tốc độ quy định (> 50 km/h).
+  - **Thẻ thông tin trên xe:** Hiển thị ID phương tiện, loại xe và tốc độ (ví dụ: `#24 Xe máy | 32.5 km/h [Chốt]`).
+  - **Bảng HUD góc trái:** Hiển thị tổng số xe đã qua vạch và chi tiết từng loại xe.
 
-### 3.2. Bang the chi so KPI
-Nam o hang tren cung cua giao dien, gom 6 the chi so duoc dong bo tu co so du lieu:
-1. **Tong Phuong Tien:** Tong so phuong tien doc lap da duoc ghi nhan qua Vach 1.
-2. **Xe may:** So luong va ty le phan tram luu luong xe 2 banh.
-3. **O to:** So luong va ty le phan tram xe o to con.
-4. **Xe tai / Quyt:** Tong luu luong phuong tien van tai hang hoa va hanh khach.
-5. **Toc do TB:** Van toc trung binh thuc te tinh bang km/h cua tat ca cac phuong tien da qua Vach 2.
-6. **Qua toc do:** Tong so luong truong hop vi pham chay qua toc do cho phep.
-
----
-
-## 4. DIEU CHINH VI TRI VACH DO VA NGUONG TOC DO
-
-Khi camera thay doi goc quan sat hoac can tinh chinh pham vi do toc do:
-
-1. **Vi tri thao tac:** Khung dieu khien ngay ben duoi man hinh video.
-2. **Cac tham so dieu chinh:**
-   - **Vach 1 [Truoc] (Dem xe):** Keo thanh truot de dieu chinh do cao Vach 1 (khoang hop le: 18% - 45% chieu cao anh).
-   - **Vach 2 [Sau] (Chot toc do):** Keo thanh truot de dieu chinh do cao Vach 2 (khoang hop le: 35% - 65% chieu cao anh).
-   - **Gioi han toc do:** Nhap gia tri van toc toi da cho phep tai doan duong (vi du: 40 km/h, 50 km/h hoac 60 km/h).
-3. **Hanh dong:** Bam vao nut **Cap Nhat Vung Do** (mau xanh cyan).
-4. **Ket qua mong doi:** Hop thoai thong bao "Da cap nhat Vach Dem Xe & Vach Tinh Toc Do thanh cong!" xuat hien, va hai duong ke tren man hinh video se tu dong dich chuyen den vi tri moi.
-5. **Luu y quan trong:** Vach 1 bat buoc phai nam o phia truoc (do cao nho hon) Vach 2 it nhat 5%. Neu keo Vach 1 thap hon hoac bang Vach 2, he thong se tu choi cap nhat de tranh sai lech phep tinh van toc.
+### 3.2. Bảng thẻ chỉ số KPI
+Nằm ở hàng trên cùng của giao diện, gồm 6 thẻ chỉ số được đồng bộ từ cơ sở dữ liệu:
+1. **Tổng Phương Tiện:** Tổng số phương tiện độc lập đã được ghi nhận qua Vạch 1.
+2. **Xe máy:** Số lượng và tỷ lệ phần trăm lưu lượng xe 2 bánh.
+3. **Ô tô:** Số lượng và tỷ lệ phần trăm xe ô tô con.
+4. **Xe tải / Buýt:** Tổng lưu lượng phương tiện vận tải hàng hóa và hành khách.
+5. **Tốc độ TB:** Vận tốc trung bình thực tế tính bằng km/h của tất cả các phương tiện đã qua Vạch 2.
+6. **Quá tốc độ:** Tổng số lượng trường hợp vi phạm chạy quá tốc độ cho phép.
 
 ---
 
-## 5. TRA CUU VA XEM ANH BANG CHUNG VI PHAM
+## 4. ĐIỀU CHỈNH VỊ TRÍ VẠCH ĐO VÀ NGƯỠNG TỐC ĐỘ
 
-### 5.1. Xem danh sach vi pham
-- **Vi tri:** Khung "Bang Chung Vi Pham Qua Toc Do" o cot ben phai giao dien.
-- **Thong tin hien thi:** Anh thu nho phuong tien vi pham, ma dinh danh track ID, loai xe, thoi gian vi pham va toc do do duoc duoc dong khung do.
+Khi camera thay đổi góc quan sát hoặc cần tinh chỉnh phạm vi đo tốc độ:
 
-### 5.2. Phong to anh bang chung
-1. **Hanh dong:** Nhan chuot trai truc tiep vao hinh anh thu nho cua phuong tien vi pham.
-2. **Ket qua mong doi:** Cua so hop thoai phong to (Image Modal) se mo ra, hien thi ro rang bien canh bao vi pham va hop bao do quanh phuong tien.
-3. **Dong cua so:** Nhan vao dau "x" o goc tren phai hoac nhan chuot vao vung toi ben ngoai anh de dong cua so.
+1. **Vị trí thao tác:** Khung điều khiển ngay bên dưới màn hình video.
+2. **Các tham số điều chỉnh:**
+   - **Vạch 1 [Trước] (Đếm xe):** Kéo thanh trượt để điều chỉnh độ cao Vạch 1 (khoảng hợp lệ: 18% - 45% chiều cao ảnh).
+   - **Vạch 2 [Sau] (Chốt tốc độ):** Kéo thanh trượt để điều chỉnh độ cao Vạch 2 (khoảng hợp lệ: 35% - 65% chiều cao ảnh).
+   - **Giới hạn tốc độ:** Nhập giá trị vận tốc tối đa cho phép tại đoạn đường (ví dụ: 40 km/h, 50 km/h hoặc 60 km/h).
+3. **Hành động:** Bấm vào nút **Cập Nhật Vùng Đo** (màu xanh cyan).
+4. **Kết quả mong đợi:** Hộp thoại thông báo "Đã cập nhật Vạch Đếm Xe & Vạch Tính Tốc Độ thành công!" xuất hiện, và hai đường kẻ trên màn hình video sẽ tự động dịch chuyển đến vị trí mới.
+5. **Lưu ý quan trọng:** Vạch 1 bắt buộc phải nằm ở phía trước (độ cao nhỏ hơn) Vạch 2 ít nhất 5%. Nếu kéo Vạch 1 thấp hơn hoặc bằng Vạch 2, hệ thống sẽ từ chối cập nhật để tránh sai lệch phép tính vận tốc.
 
 ---
 
-## 6. XUAT BAO CAO GIAO THONG RA TEP CSV
+## 5. TRA CỨU VÀ XEM ẢNH BẰNG CHỨNG VI PHẠM
 
-1. **Vi tri thao tac:** Nut **Xuat CSV** (mau xanh duong) nam o thanh tieu de goc tren ben phai cua trang web.
-2. **Hanh dong:** Nhan chuot vao nut "Xuat CSV".
-3. **Ket qua mong doi:** Trinh duyet se tu dong tai xuong tep tin co ten `its_traffic_report.csv`.
-4. **Kiem tra tep tin:** Mo tep bang Microsoft Excel, Notepad hoac Google Sheets. Tep tin duoc ma hoa voi chuan UTF-8 BOM, dam bao hien thi day du cac cot bang tieng Viet co dau:
+### 5.1. Xem danh sách vi phạm
+- **Vị trí:** Khung "Bằng Chứng Vi Phạm Quá Tốc Độ" ở cột bên phải giao diện.
+- **Thông tin hiển thị:** Ảnh thu nhỏ phương tiện vi phạm, mã định danh track ID, loại xe, thời gian vi phạm và tốc độ đo được đóng khung đỏ.
+
+### 5.2. Phóng to ảnh bằng chứng
+1. **Hành động:** Nhấn chuột trái trực tiếp vào hình ảnh thu nhỏ của phương tiện vi phạm.
+2. **Kết quả mong đợi:** Cửa sổ hộp thoại phóng to (Image Modal) sẽ mở ra, hiển thị rõ ràng biển cảnh báo vi phạm và hộp bao đỏ quanh phương tiện.
+3. **Đóng cửa sổ:** Nhấn vào dấu "x" ở góc trên phải hoặc nhấn chuột vào vùng tối bên ngoài ảnh để đóng cửa sổ.
+
+---
+
+## 6. XUẤT BÁO CÁO GIAO THÔNG RA TỆP CSV
+
+1. **Vị trí thao tác:** Nút **Xuất CSV** (màu xanh dương) nằm ở thanh tiêu đề góc trên bên phải của trang web.
+2. **Hành động:** Nhấn chuột vào nút "Xuất CSV".
+3. **Kết quả mong đợi:** Trình duyệt sẽ tự động tải xuống tệp tin có tên `its_traffic_report.csv`.
+4. **Kiểm tra tệp tin:** Mở tệp bằng Microsoft Excel, Notepad hoặc Google Sheets. Tệp tin được mã hóa với chuẩn UTF-8 BOM, đảm bảo hiển thị đầy đủ các cột bằng tiếng Việt có dấu:
    - STT
    - Track ID
-   - Loai Phuong Tien
-   - Van Toc (km/h)
-   - Vi Pham Qua Toc Do
-   - Huong Di Chuyen
-   - Trang Thai
-   - Thoi Gian Ghi Nhan
+   - Loại Phương Tiện
+   - Vận Tốc (km/h)
+   - Vi Phạm Quá Tốc Độ
+   - Hướng Di Chuyển
+   - Trạng Thái
+   - Thời Gian Ghi Nhận
 
 ---
 
-## 7. DAT LAI SO LIEU (RESET DATA)
+## 7. ĐẶT LẠI SỐ LIỆU (RESET DATA)
 
-Khi can bat dau mot ca truc giam sat moi hoac muon xoa so lieu cu:
+Khi cần bắt đầu một ca trực giám sát mới hoặc muốn xóa số liệu cũ:
 
-1. **Vi tri thao tac:** Nut **Dat lai** (co bieu tuong xoay) o thanh tieu de phia tren.
-2. **Hanh dong:** Nhan nut "Dat lai" va chon **OK** tren hop thoai xac nhan cua trinh duyet.
-3. **Ket qua mong doi:** Toan bo cac so lieu tong tren the KPI, bieu do Chart.js va bang nhat ky xe se duoc lam sach ve so 0, va he thong se khoi tao mot phien giam sat moi.
+1. **Vị trí thao tác:** Nút **Đặt lại** (có biểu tượng xoay) ở thanh tiêu đề phía trên.
+2. **Hành động:** Nhấn nút "Đặt lại" và chọn **OK** trên hộp thoại xác nhận của trình duyệt.
+3. **Kết quả mong đợi:** Toàn bộ các số liệu tổng trên thẻ KPI, biểu đồ Chart.js và bảng nhật ký xe sẽ được làm sạch về số 0, và hệ thống sẽ khởi tạo một phiên giám sát mới.
 
 ---
 
-## 8. DUNG HE THONG AN TOAN
+## 8. DỪNG HỆ THỐNG AN TOÀN
 
-1. **Vi tri thao tac:** Cua so dong lenh (PowerShell/CMD) dang chay chuong trinh `run_dashboard.py`.
-2. **Hanh dong:** Nhan to hop phim **Ctrl + C**.
-3. **Ket qua mong doi:** May chu web FastAPI va chuong trinh OpenCV se dong toan bo ket noi, giai phong camera/video va dung tien trinh an toan ma khong lam hong du lieu.
-
+1. **Vị trí thao tác:** Cửa sổ dòng lệnh (PowerShell/CMD) đang chạy chương trình `run_dashboard.py`.
+2. **Hành động:** Nhấn tổ hợp phím **Ctrl + C**.
+3. **Kết quả mong đợi:** Máy chủ web FastAPI và chương trình OpenCV sẽ đóng toàn bộ kết nối, giải phóng camera/video và dừng tiến trình an toàn mà không làm hỏng dữ liệu.

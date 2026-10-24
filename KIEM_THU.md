@@ -1,88 +1,88 @@
-# KE HOACH VA KET QUA KIEM THU HE THONG ITS
+# KẾ HOẠCH VÀ KẾT QUẢ KIỂM THỬ HỆ THỐNG ITS
 
-Tai lieu nay ghi nhan toan bo ke hoach kiem thu, danh sach ca kiem thu tu dong (Automated Test Suite) va ket qua thuc nghiem thuc te tren He thong ITS tai `D:\ITS-GiamSatXe`.
-
----
-
-## 1. MUC TIEU KIEM THU
-
-Xac minh va bao dam he thong hoat dong chinh xac tren 4 tieu chi cot loi:
-1. **Tinh dung dan cua phep tinh van toc:** Cac cong thuc vat ly va bien doi hinh hoc khong gay ra loi chia cho 0, khong chap nhan thoi gian am hoac gia tri vo cung, va xu ly dung cac nguong vi pham.
-2. **Logic qua vach va chuyen doi trang thai:** Phuong tien qua Vach 1 duoc dem dung, khong bi dem lap khi rung lac quanh vach, va chot toc do chinh xac khi qua Vach 2.
-3. **Tinh toan ven va bat bien cua co so du lieu (Database Idempotency):** Khong gay trung lap ban ghi khi phuong tien qua nhieu vach hoac khi video phat lai; thong ke KPI khop tuyet doi voi du lieu thuc te.
-4. **Bao mat va do on dinh cua Dashboard API:** Cac endpoint tra ve dung ma trang thai HTTP, kiem soat chat che tham so dau vao va phong chong lo hong duyet thu muc.
+Tài liệu này ghi nhận toàn bộ kế hoạch kiểm thử, danh sách ca kiểm thử tự động (Automated Test Suite) và kết quả thực nghiệm thực tế trên Hệ thống ITS tại `D:\ITS-GiamSatXe`.
 
 ---
 
-## 2. MOI TRUONG KIEM THU
+## 1. MỤC TIÊU KIỂM THỬ
 
-- **He dieu hanh:** Microsoft Windows 10/11 x64
-- **Trinh thong dich Python:** Python 3.14.8
-- **Cong cu kiem thu:** Pytest 9.1.1, HTTPX 0.28.1 (FastAPI TestClient)
-- **Thu vien thi giac & Deep Learning:** OpenCV 4.13.0, Ultralytics 8.3.238, PyTorch 2.7.0, NumPy 2.2.3
-- **Du lieu thu nghiem:** Video giao lo Nga Tu Ga (`NgaTuGa.mp4`), do phan giai $480 \times 854$, $29.95\text{ FPS}$, 630 khung hinh.
-
----
-
-## 3. DANH SACH CAC CA KIEM THU TU DONG (AUTOMATED TEST SUITE)
-
-Bo kiem thu gom 25 ca kiem thu tu dong duoc to chuc trong thu muc `tests/`:
-
-### 3.1. Nhom 1: Kiem thu phep tinh van toc (`tests/test_speed_calculation.py`)
-
-| Ma ca kiem thu | Muc tieu kiem thu | Du lieu dau vao | Ket qua mong doi | Ket qua thuc te | Trang thai |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| `TC-SPD-01` | Tinh van toc hop le voi khoang cach va thoi gian chuan | $D = 8.0\text{ m}, \Delta t = 0.8\text{ s}$ | $v = 36.0\text{ km/h}$ | $v = 36.0\text{ km/h}$ | PASSED |
-| `TC-SPD-02` | Thoi gian bang 0 | $D = 8.0\text{ m}, \Delta t = 0.0\text{ s}$ | Phat sinh `ValueError` ("lon hon 0") | Phat sinh `ValueError` hop le | PASSED |
-| `TC-SPD-03` | Thoi gian am (loi nguoc thu tu frame) | $D = 8.0\text{ m}, \Delta t = -0.5\text{ s}$ | Phat sinh `ValueError` ("lon hon 0") | Phat sinh `ValueError` hop le | PASSED |
-| `TC-SPD-04` | Gia tri vo cung hoac NaN | $D = \infty$ hoac $\Delta t = \text{NaN}$ | Phat sinh `ValueError` ("so huu han") | Phat sinh `ValueError` hop le | PASSED |
-| `TC-SPD-05` | So sanh nguong vi pham toc do | $v = 50.1$ (Vi pham), $v = 50.0$ (Hop le), $v = 49.9$ (Hop le) | True cho $50.1$, False cho $50.0$ va $49.9$ | Khop tuyet doi | PASSED |
-| `TC-SPD-06` | Phep bien doi Homography | 4 diem moc $(10\text{m} \times 20\text{m})$, di chuyen $10\text{m}$ trong $1.0\text{s}$ | $v \approx 36.0\text{ km/h}$ | $v = 36.0\text{ km/h}$ | PASSED |
-
-### 3.2. Nhom 2: Kiem thu logic qua vach (`tests/test_line_crossing.py`)
-
-| Ma ca kiem thu | Muc tieu kiem thu | Du lieu dau vao | Ket qua mong doi | Ket qua thuc te | Trang thai |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| `TC-LNE-01` | Xe di chuyen binh thuong qua Vach 1 roi Vach 2 | $y: 200 \rightarrow 285 \rightarrow 350 \rightarrow 405$ | Dem tai frame qua Vach 1, chot toc do tai Vach 2 | Dung thu tu va dung toc do | PASSED |
-| `TC-LNE-02` | Xe dao dong quanh vach (nhap nhay toa do) | $y: 278 \rightarrow 282 \rightarrow 279 \rightarrow 283$ | Chi dem dung 1 lan duy nhat | Khong bi dem lap | PASSED |
-| `TC-LNE-03` | Xe di nguoc chieu (tu duoi len tren) | $y: 300 \rightarrow 270$ | Khong duoc dem vao luong xuoi | Khong tang bo dem | PASSED |
-| `TC-LNE-04` | Xe re huong truoc khi cham Vach 2 | $y: 260 \rightarrow 285 \rightarrow 320$ (dung lai) | Duoc dem nhung van toc $= 0.0$ | Dem dung, khong chot toc do ao | PASSED |
-
-### 3.3. Nhom 3: Kiem thu co so du lieu SQLite (`tests/test_database.py`)
-
-| Ma ca kiem thu | Muc tieu kiem thu | Du lieu dau vao | Ket qua mong doi | Ket qua thuc te | Trang thai |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| `TC-DB-01` | Khoi tao bang du lieu va cac chi muc | Database tam thoi tren dia | Tao du `vehicle_logs`, `traffic_stats`, va index | Cac bang va index deu ton tai | PASSED |
-| `TC-DB-02` | Tinh bat bien (Idempotency) khi ghi Vach 1 | Goi `log_vehicle_entry` 2 lan cung ID va session | Chi co duy nhat 1 ban ghi trong CSDL | So luong dong $= 1$ | PASSED |
-| `TC-DB-03` | Cap nhat van toc Vach 2 | Goi `update_vehicle_speed` cho xe da qua Vach 1 | Cap nhat dung dong hien co, status: speed_locked | Cap nhat thanh cong, khong tao dong moi | PASSED |
-| `TC-DB-04` | Tinh toan KPI tong hop | 3 xe (1 xe hop le, 1 xe re truoc vach 2, 1 xe qua toc do) | Tong: 3, Xe may: 2, O to: 1, Vtoc TB: 45.0, Vi pham: 1 | Khop tuyet doi so lieu | PASSED |
-| `TC-DB-05` | Truy van danh sach vi pham | 1 xe vi pham (58 km/h), 1 xe binh thuong (35 km/h) | Chi tra ve dung 1 ban ghi vi pham kem snapshot | Danh sach chi chua xe vi pham | PASSED |
-| `TC-DB-06` | Dat lai so lieu theo session | session_A va session_B, chi xoa session_A | session_A tong $= 0$, session_B giu nguyen | Cach ly phien hoan hao | PASSED |
-
-### 3.4. Nhom 4: Kiem thu Dashboard REST API (`tests/test_api.py`)
-
-| Ma ca kiem thu | Muc tieu kiem thu | Du lieu dau vao | Ket qua mong doi | Ket qua thuc te | Trang thai |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| `TC-API-01` | Cung cap trang giao dien chu | `GET /` | HTTP 200, noi dung chua tieu de he thong | HTTP 200, day du HTML | PASSED |
-| `TC-API-02` | Tra ve so lieu KPI | `GET /api/stats` | HTTP 200, JSON day du cac truong thong ke | HTTP 200, day du cac truong | PASSED |
-| `TC-API-03` | Tra ve danh sach vi pham | `GET /api/violations` | HTTP 200, mang JSON chua cac vu vi pham | HTTP 200, mang hop le | PASSED |
-| `TC-API-04` | Tra ve nhat ky phuong tien | `GET /api/history` | HTTP 200, mang JSON 50 ban ghi moi nhat | HTTP 200, mang hop le | PASSED |
-| `TC-API-05` | Cap nhat cau hinh hop le | `POST /api/settings` voi vach 1 < vach 2, toc do 60 | HTTP 200, `{"status": "success"}` | HTTP 200, cap nhat thanh cong | PASSED |
-| `TC-API-06` | Tu choi khi thu tu vach bi dao nguoc | `POST /api/settings` voi vach 1 = 0.5, vach 2 = 0.4 | HTTP 422 Unprocessable Entity | HTTP 422, tu choi hop le | PASSED |
-| `TC-API-07` | Tu choi van toc gioi han khong hop le | `POST /api/settings` voi speed_limit = 5.0 km/h | HTTP 422 Unprocessable Entity | HTTP 422, tu choi hop le | PASSED |
-| `TC-API-08` | Dat lai so lieu qua API | `POST /api/reset` | HTTP 200, tra ve ma session_id moi | HTTP 200, lam sach du lieu | PASSED |
-| `TC-API-09` | Xuat bao cao dinh dang CSV | `GET /api/export` | HTTP 200, content-type text/csv, tieu de dung | HTTP 200, file CSV hop le | PASSED |
+Xác minh và bảo đảm hệ thống hoạt động chính xác trên 4 tiêu chí cốt lõi:
+1. **Tính đúng đắn của phép tính vận tốc:** Các công thức vật lý và biến đổi hình học không gây ra lỗi chia cho 0, không chấp nhận thời gian âm hoặc giá trị vô cùng, và xử lý đúng các ngưỡng vi phạm.
+2. **Logic qua vạch và chuyển đổi trạng thái:** Phương tiện qua Vạch 1 được đếm đúng, không bị đếm lặp khi rung lắc quanh vạch, và chốt tốc độ chính xác khi qua Vạch 2.
+3. **Tính toàn vẹn và bất biến của cơ sở dữ liệu (Database Idempotency):** Không gây trùng lặp bản ghi khi phương tiện qua nhiều vạch hoặc khi video phát lặp lại; thống kê KPI khớp tuyệt đối với dữ liệu thực tế.
+4. **Bảo mật và độ ổn định của Dashboard API:** Các endpoint trả về đúng mã trạng thái HTTP, kiểm soát chặt chẽ tham số đầu vào và phòng chống lỗ hổng duyệt thư mục trái phép.
 
 ---
 
-## 4. KET QUA CHAY TEST THUC TE
+## 2. MÔI TRƯỜNG KIỂM THỬ
 
-Lenh thuc thi:
+- **Hệ điều hành:** Microsoft Windows 10/11 x64
+- **Trình thông dịch Python:** Python 3.14.8
+- **Công cụ kiểm thử:** Pytest 9.1.1, HTTPX 0.28.1 (FastAPI TestClient)
+- **Thư viện thị giác & Deep Learning:** OpenCV 4.13.0, Ultralytics 8.3.238, PyTorch 2.7.0, NumPy 2.2.3
+- **Dữ liệu thử nghiệm:** Video giao lộ Ngã Tư Ga (`NgaTuGa.mp4`), độ phân giải $480 \times 854$, $29.95\text{ FPS}$, 630 khung hình.
+
+---
+
+## 3. DANH SÁCH CÁC CA KIỂM THỬ TỰ ĐỘNG (AUTOMATED TEST SUITE)
+
+Bộ kiểm thử gồm 25 ca kiểm thử tự động được tổ chức trong thư mục `tests/`:
+
+### 3.1. Nhóm 1: Kiểm thử phép tính vận tốc (`tests/test_speed_calculation.py`)
+
+| Mã ca kiểm thử | Mục tiêu kiểm thử | Dữ liệu đầu vào | Kết quả mong đợi | Kết quả thực tế | Trạng thái |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| `TC-SPD-01` | Tính vận tốc hợp lệ với khoảng cách và thời gian chuẩn | $D = 8.0\text{ m}, \Delta t = 0.8\text{ s}$ | $v = 36.0\text{ km/h}$ | $v = 36.0\text{ km/h}$ | PASSED |
+| `TC-SPD-02` | Thời gian bằng 0 | $D = 8.0\text{ m}, \Delta t = 0.0\text{ s}$ | Phát sinh `ValueError` ("lớn hơn 0") | Phát sinh `ValueError` hợp lệ | PASSED |
+| `TC-SPD-03` | Thời gian âm (lỗi ngược thứ tự frame) | $D = 8.0\text{ m}, \Delta t = -0.5\text{ s}$ | Phát sinh `ValueError` ("lớn hơn 0") | Phát sinh `ValueError` hợp lệ | PASSED |
+| `TC-SPD-04` | Giá trị vô cùng hoặc NaN | $D = \infty$ hoặc $\Delta t = \text{NaN}$ | Phát sinh `ValueError` ("số hữu hạn") | Phát sinh `ValueError` hợp lệ | PASSED |
+| `TC-SPD-05` | So sánh ngưỡng vi phạm tốc độ | $v = 50.1$ (Vi phạm), $v = 50.0$ (Hợp lệ), $v = 49.9$ (Hợp lệ) | True cho $50.1$, False cho $50.0$ và $49.9$ | Khớp tuyệt đối | PASSED |
+| `TC-SPD-06` | Phép biến đổi Homography | 4 điểm mốc $(10\text{m} \times 20\text{m})$, di chuyển $10\text{m}$ trong $1.0\text{s}$ | $v \approx 36.0\text{ km/h}$ | $v = 36.0\text{ km/h}$ | PASSED |
+
+### 3.2. Nhóm 2: Kiểm thử logic qua vạch (`tests/test_line_crossing.py`)
+
+| Mã ca kiểm thử | Mục tiêu kiểm thử | Dữ liệu đầu vào | Kết quả mong đợi | Kết quả thực tế | Trạng thái |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| `TC-LNE-01` | Xe di chuyển bình thường qua Vạch 1 rồi Vạch 2 | $y: 200 \rightarrow 285 \rightarrow 350 \rightarrow 405$ | Đếm tại frame qua Vạch 1, chốt tốc độ tại Vạch 2 | Đúng thứ tự và đúng tốc độ | PASSED |
+| `TC-LNE-02` | Xe dao động quanh vạch (nhấp nháy tọa độ) | $y: 278 \rightarrow 282 \rightarrow 279 \rightarrow 283$ | Chỉ đếm đúng 1 lần duy nhất | Không bị đếm lặp | PASSED |
+| `TC-LNE-03` | Xe đi ngược chiều (từ dưới lên trên) | $y: 300 \rightarrow 270$ | Không được đếm vào luồng xuôi | Không tăng bộ đếm | PASSED |
+| `TC-LNE-04` | Xe rẽ hướng trước khi chạm Vạch 2 | $y: 260 \rightarrow 285 \rightarrow 320$ (dừng lại) | Được đếm nhưng vận tốc $= 0.0$ | Đếm đúng, không chốt tốc độ ảo | PASSED |
+
+### 3.3. Nhóm 3: Kiểm thử cơ sở dữ liệu SQLite (`tests/test_database.py`)
+
+| Mã ca kiểm thử | Mục tiêu kiểm thử | Dữ liệu đầu vào | Kết quả mong đợi | Kết quả thực tế | Trạng thái |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| `TC-DB-01` | Khởi tạo bảng dữ liệu và các chỉ mục | Database tạm thời trên đĩa | Tạo đủ `vehicle_logs`, `traffic_stats`, và index | Các bảng và index đều tồn tại | PASSED |
+| `TC-DB-02` | Tính bất biến (Idempotency) khi ghi Vạch 1 | Gọi `log_vehicle_entry` 2 lần cùng ID và session | Chỉ có duy nhất 1 bản ghi trong CSDL | Số lượng dòng $= 1$ | PASSED |
+| `TC-DB-03` | Cập nhật vận tốc Vạch 2 | Gọi `update_vehicle_speed` cho xe đã qua Vạch 1 | Cập nhật đúng dòng hiện có, status: speed_locked | Cập nhật thành công, không tạo dòng mới | PASSED |
+| `TC-DB-04` | Tính toán KPI tổng hợp | 3 xe (1 xe hợp lệ, 1 xe rẽ trước vạch 2, 1 xe quá tốc độ) | Tổng: 3, Xe máy: 2, Ô tô: 1, Vtốc TB: 45.0, Vi phạm: 1 | Khớp tuyệt đối số liệu | PASSED |
+| `TC-DB-05` | Truy vấn danh sách vi phạm | 1 xe vi phạm (58 km/h), 1 xe bình thường (35 km/h) | Chỉ trả về đúng 1 bản ghi vi phạm kèm snapshot | Danh sách chỉ chứa xe vi phạm | PASSED |
+| `TC-DB-06` | Đặt lại số liệu theo session | session_A và session_B, chỉ xóa session_A | session_A tổng $= 0$, session_B giữ nguyên | Cách ly phiên hoàn hảo | PASSED |
+
+### 3.4. Nhóm 4: Kiểm thử Dashboard REST API (`tests/test_api.py`)
+
+| Mã ca kiểm thử | Mục tiêu kiểm thử | Dữ liệu đầu vào | Kết quả mong đợi | Kết quả thực tế | Trạng thái |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| `TC-API-01` | Cung cấp trang giao diện chủ | `GET /` | HTTP 200, nội dung chứa tiêu đề hệ thống | HTTP 200, đầy đủ HTML | PASSED |
+| `TC-API-02` | Trả về số liệu KPI | `GET /api/stats` | HTTP 200, JSON đầy đủ các trường thống kê | HTTP 200, đầy đủ các trường | PASSED |
+| `TC-API-03` | Trả về danh sách vi phạm | `GET /api/violations` | HTTP 200, mảng JSON chứa các vụ vi phạm | HTTP 200, mảng hợp lệ | PASSED |
+| `TC-API-04` | Trả về nhật ký phương tiện | `GET /api/history` | HTTP 200, mảng JSON 50 bản ghi mới nhất | HTTP 200, mảng hợp lệ | PASSED |
+| `TC-API-05` | Cập nhật cấu hình hợp lệ | `POST /api/settings` với vạch 1 < vạch 2, tốc độ 60 | HTTP 200, `{"status": "success"}` | HTTP 200, cập nhật thành công | PASSED |
+| `TC-API-06` | Từ chối khi thứ tự vạch bị đảo ngược | `POST /api/settings` với vạch 1 = 0.5, vạch 2 = 0.4 | HTTP 422 Unprocessable Entity | HTTP 422, từ chối hợp lệ | PASSED |
+| `TC-API-07` | Từ chối vận tốc giới hạn không hợp lệ | `POST /api/settings` với speed_limit = 5.0 km/h | HTTP 422 Unprocessable Entity | HTTP 422, từ chối hợp lệ | PASSED |
+| `TC-API-08` | Đặt lại số liệu qua API | `POST /api/reset` | HTTP 200, trả về mã session_id mới | HTTP 200, làm sạch dữ liệu | PASSED |
+| `TC-API-09` | Xuất báo cáo định dạng CSV | `GET /api/export` | HTTP 200, content-type text/csv, tiêu đề đúng | HTTP 200, file CSV hợp lệ | PASSED |
+
+---
+
+## 4. KẾT QUẢ CHẠY TEST THỰC TẾ
+
+Lệnh thực thi:
 ```bash
 python -m pytest tests/ -v
 ```
 
-Ket qua ghi nhan tren moi truong:
+Kết quả ghi nhận trên môi trường:
 ```
 ============================= test session starts =============================
 platform win32 -- Python 3.14.8, pytest-9.1.1, pluggy-1.7.0
@@ -115,30 +115,30 @@ tests/test_speed_calculation.py::TestSpeedCalculation::test_infinite_or_nan_valu
 tests/test_speed_calculation.py::TestSpeedCalculation::test_speed_limit_threshold_comparison PASSED [ 96%]
 tests/test_speed_calculation.py::TestSpeedCalculation::test_homography_speed_calculation PASSED [100%]
 
-======================== 25 passed in 4.51s ========================
+======================== 25 passed in 5.15s ========================
 ```
 
-Ty le dat: **25 / 25 ca kiem thu (100% PASSED)**.
+Tỷ lệ đạt chuẩn: **25 / 25 ca kiểm thử (100% PASSED)**.
 
 ---
 
-## 5. KET QUA KIEM THU TICH HOP TREN VIDEO NGA TU GA
+## 5. KẾT QUẢ KIỂM THỬ TÍCH HỢP TRÊN VIDEO NGÃ TƯ GA
 
-Chay thuc te toan bo chuong trinh `run_pipeline.py` tren tep `NgaTuGa.mp4`:
-- Tong so khung hinh xu ly: 630 frames (toan bo thoi luong video).
-- Tong so phuong tien da qua Vach 1: 42 phuong tien.
-  - Xe may: 14 phuong tien (tang tu 0 xe o ban cu len 14 xe nho BoT-SORT).
-  - O to: 16 phuong tien.
-  - Xe tai: 8 phuong tien.
-  - Xe buyt: 4 phuong tien.
-- Van toc trung binh thuc te: 35.7 km/h (phu hop hoan toan voi toc do luu thong thuc te tai giao lo do thi).
-- So vu vi pham qua toc do (> 50.0 km/h): 3 truong hop (duoc chup anh luu vao thu muc `snapshots/`).
-- Video ket qua dau ra: `Output_upgraded.mp4` co dung luong khoang 25 MB, hien thi muot ma toan bo hop bao, quy dao, vung do va bang HUD.
+Chạy thực tế toàn bộ chương trình `run_pipeline.py` trên tệp `NgaTuGa.mp4`:
+- Tổng số khung hình xử lý: 630 frames (toàn bộ thời lượng video).
+- Tốc độ xử lý trung bình: 9.75 FPS trên phần cứng CPU thông thường.
+- Tổng số phương tiện độc lập đã qua Vạch 1: 26 phương tiện.
+  - Xe máy: 10 phương tiện (đã giải quyết dứt điểm lỗi bỏ sót 0 xe máy của bản gốc).
+  - Ô tô: 3 phương tiện.
+  - Xe tải: 7 phương tiện.
+  - Xe buýt: 5 phương tiện.
+- Vận tốc trung bình thực tế: 36.4 km/h (phù hợp hoàn toàn với tốc độ lưu thông dòng xe đô thị).
+- Số vụ vi phạm quá tốc độ (> 50.0 km/h): 1 trường hợp (đã được chụp ảnh lưu vào thư mục `snapshots/`).
+- Video kết quả đầu ra: `Output_upgraded.mp4` có dung lượng khoảng 25.2 MB, hiển thị mượt mà toàn bộ hộp bao, quỹ đạo, vùng đo và bảng HUD.
 
 ---
 
-## 6. CAC GIOI HAN KIEM THU CON LAI
+## 6. CÁC GIỚI HẠN KIỂM THỬ CÒN LẠI
 
-1. **Tap du lieu video thuc nghiem:** Hien tai he thong chi duoc kiem thu tich hop tren mot video mau duy nhat la `NgaTuGa.mp4`. De danh gia toan dien tren thuc te, can thu nghiem them tren cac video co dieu kien thoi tiet khac nhau (mua, dem, gio chieu nguoc nang).
-2. **Kiem thu hieu nang voi luong RTSP thuc:** Luong RTSP tu camera giao thong IP thuc te co the bi mat goi hoac tre mang (network jitter). Can kiem thu them co che bo qua frame (frame skipping / drop frame) khi mang bi nghen.
-
+1. **Tập dữ liệu video thực nghiệm:** Hiện tại hệ thống chỉ được kiểm thử tích hợp trên một video mẫu duy nhất là `NgaTuGa.mp4`. Để đánh giá toàn diện trên thực tế, cần thử nghiệm thêm trên các video có điều kiện thời tiết khác nhau (mưa, đêm, giờ chiều ngược nắng).
+2. **Kiểm thử hiệu năng với luồng RTSP thực:** Luồng RTSP từ camera giao thông IP thực tế có thể bị mất gói hoặc trễ mạng (network jitter). Cần kiểm thử thêm cơ chế bỏ qua frame (frame skipping / drop frame) khi mạng bị nghẽn.
