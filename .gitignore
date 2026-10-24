@@ -1,0 +1,29 @@
+# Python bytecode and caches
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# SQLite databases (runtime generated)
+its_database.db
+its_database.db-wal
+its_database.db-shm
+*.sqlite3
+
+# Temporary snapshots (keep folder with .gitkeep)
+snapshots/*.jpg
+!snapshots/.gitkeep
+
+# Large generated output videos
+vehicles_counting-master/Output.mp4
+# Output_upgraded.mp4
+
+# Environment and IDE files
+.venv/
+venv/
+.vscode/
+.idea/
+
+# OS specific files
+Thumbs.db
+.DS_Store

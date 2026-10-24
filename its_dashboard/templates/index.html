@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hệ Thống ITS - Giám Sát & Đo Tốc Độ Phương Tiện</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @keyframes pulse-slow {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(0.98); }
+        }
+        .live-dot {
+            animation: pulse-slow 1.5s infinite;
+        }
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans">
+
+    <!-- Top Navigation Bar -->
+    <header class="bg-slate-900/90 backdrop-blur border-b border-slate-800 sticky top-0 z-50 px-6 py-3.5 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/20">
+                <i class="fa-solid fa-traffic-light text-xl text-white"></i>
+            </div>
+            <div>
+                <h1 class="text-lg font-bold tracking-tight bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
+                    ITS TRAFFIC MONITORING SYSTEM
+                </h1>
+                <p class="text-xs text-slate-400">Đại học Giao thông Vận tải TP.HCM (UTH) • YOLO11 Single-Pass Engine</p>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-4">
+            <div class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-800/80 border border-slate-700 text-xs">
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 live-dot"></span>
+                <span class="text-slate-300 font-medium">LIVE STREAM</span>
+            </div>
+            <div class="px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-xs text-slate-300">
+                Tốc độ xử lý: <span id="fps-val" class="font-bold text-emerald-400">-- FPS</span>
+            </div>
+            <a href="/api/export" class="flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold shadow transition">
+                <i class="fa-solid fa-file-arrow-down"></i> Xuất CSV
+            </a>
+            <button onclick="resetData()" class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-red-950/40 hover:text-red-400 border border-slate-700 text-xs text-slate-300 transition">
+                <i class="fa-solid fa-rotate-right"></i> Đặt lại
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-1 p-6 space-y-6 max-w-[1600px] w-full mx-auto">
+
+        <!-- Top Metric KPI Cards -->
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            <!-- Total Count -->
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-sm relative overflow-hidden">
+                <div class="text-slate-400 text-xs font-medium uppercase tracking-wider">Tổng Phương Tiện</div>
+                <div class="text-3xl font-extrabold text-white mt-2" id="kpi-total">0</div>
+                <div class="text-[11px] text-cyan-400 mt-1 flex items-center gap-1">
+                    <i class="fa-solid fa-check-double"></i> Đã qua vạch đếm
+                </div>
+            </div>
+
+            <!-- Motorcycles -->
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-sm">
+                <div class="text-slate-400 text-xs font-medium uppercase tracking-wider flex items-center justify-between">
+                    <span>Xe máy</span>
+                    <i class="fa-solid fa-motorcycle text-emerald-400"></i>
+                </div>
+                <div class="text-3xl font-extrabold text-emerald-400 mt-2" id="kpi-motorcycles">0</div>
+                <div class="text-[11px] text-slate-500 mt-1" id="kpi-motorcycles-pct">0% lưu lượng</div>
+            </div>
+
+            <!-- Cars -->
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-sm">
+                <div class="text-slate-400 text-xs font-medium uppercase tracking-wider flex items-center justify-between">
+                    <span>Ô tô</span>
+                    <i class="fa-solid fa-car text-blue-400"></i>
+                </div>
+                <div class="text-3xl font-extrabold text-blue-400 mt-2" id="kpi-cars">0</div>
+                <div class="text-[11px] text-slate-500 mt-1" id="kpi-cars-pct">0% lưu lượng</div>
+            </div>
+
+            <!-- Trucks & Buses -->
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-sm">
+                <div class="text-slate-400 text-xs font-medium uppercase tracking-wider flex items-center justify-between">
+                    <span>Xe tải / Buýt</span>
+                    <i class="fa-solid fa-truck-moving text-purple-400"></i>
+                </div>
+                <div class="text-3xl font-extrabold text-purple-400 mt-2" id="kpi-heavy">0</div>
+                <div class="text-[11px] text-slate-500 mt-1" id="kpi-heavy-pct">0% lưu lượng</div>
+            </div>
+
+            <!-- Average Speed -->
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-sm">
+                <div class="text-slate-400 text-xs font-medium uppercase tracking-wider flex items-center justify-between">
+                    <span>Tốc độ TB</span>
+                    <i class="fa-solid fa-gauge-high text-amber-400"></i>
+                </div>
+                <div class="text-3xl font-extrabold text-amber-400 mt-2" id="kpi-speed">0 <span class="text-sm font-normal text-slate-400">km/h</span></div>
+                <div class="text-[11px] text-slate-500 mt-1">Chuẩn hóa Homography</div>
+            </div>
+
+            <!-- Violations -->
+            <div class="bg-slate-900 border border-red-950/60 rounded-xl p-4 shadow-sm relative overflow-hidden bg-gradient-to-b from-red-950/20 to-transparent">
+                <div class="text-red-400 text-xs font-medium uppercase tracking-wider flex items-center justify-between">
+                    <span>Quá tốc độ</span>
+                    <i class="fa-solid fa-triangle-exclamation text-red-500"></i>
+                </div>
+                <div class="text-3xl font-extrabold text-red-500 mt-2" id="kpi-violations">0</div>
+                <div class="text-[11px] text-red-400/80 mt-1">Giới hạn: <span id="kpi-speed-limit-badge">50</span> km/h</div>
+            </div>
+        </div>
+
+        <!-- Middle Section: Stream + Analytics -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+            <!-- Video Player & Controls (7 Cols) -->
+            <div class="lg:col-span-7 space-y-4">
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl flex flex-col">
+                    <div class="px-4 py-3 bg-slate-800/60 border-b border-slate-800 flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-video text-cyan-400 text-sm"></i>
+                            <span class="text-sm font-semibold text-slate-200">Video Giám Sát Real-Time (Nút giao Ngã Tư Ga)</span>
+                        </div>
+                        <span class="text-xs px-2.5 py-0.5 rounded bg-cyan-950 text-cyan-400 border border-cyan-800">
+                            Single-Pass YOLO11
+                        </span>
+                    </div>
+
+                    <!-- Video Container -->
+                    <div class="relative bg-black flex items-center justify-center min-h-[420px]">
+                        <img id="stream-img" src="/video_feed" alt="Video stream" class="w-full h-auto object-contain max-h-[560px]">
+                    </div>
+
+                    <!-- Interactive Config Bar -->
+                    <div class="p-4 bg-slate-900 border-t border-slate-800 grid grid-cols-1 sm:grid-cols-4 gap-4 items-center text-xs">
+                        <!-- Line 1 Count Slider -->
+                        <div class="space-y-1">
+                            <div class="flex justify-between text-slate-400">
+                                <span>Vạch 1 [Trước] (Đếm xe):</span>
+                                <span id="line1-val" class="font-bold text-yellow-400">33%</span>
+                            </div>
+                            <input id="line1-slider" type="range" min="0.18" max="0.45" step="0.01" value="0.33" 
+                                   class="w-full accent-yellow-400 cursor-pointer" oninput="document.getElementById('line1-val').innerText = `${Math.round(this.value * 100)}%`">
+                        </div>
+
+                        <!-- Line 2 Speed Slider -->
+                        <div class="space-y-1">
+                            <div class="flex justify-between text-slate-400">
+                                <span>Vạch 2 [Sau] (Chốt tốc độ):</span>
+                                <span id="line2-val" class="font-bold text-cyan-400">47%</span>
+                            </div>
+                            <input id="line2-slider" type="range" min="0.35" max="0.65" step="0.01" value="0.47" 
+                                   class="w-full accent-cyan-400 cursor-pointer" oninput="document.getElementById('line2-val').innerText = `${Math.round(this.value * 100)}%`">
+                        </div>
+
+                        <!-- Speed Limit Setting -->
+                        <div class="space-y-1">
+                            <div class="flex justify-between text-slate-400">
+                                <span>Giới hạn tốc độ:</span>
+                                <span id="limit-val" class="font-bold text-red-400">50 km/h</span>
+                            </div>
+                            <input id="limit-input" type="number" min="10" max="100" value="50" 
+                                   class="w-full bg-slate-950 border border-slate-700 rounded px-2.5 py-1 text-slate-200"
+                                   oninput="document.getElementById('limit-val').innerText = `${this.value} km/h`">
+                        </div>
+
+                        <!-- Apply Button -->
+                        <div>
+                            <button onclick="applySettings()" class="w-full py-2 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white font-medium shadow transition">
+                                <i class="fa-solid fa-sliders mr-1"></i> Cập Nhật Vùng Đo
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Charts & Violations (5 Cols) -->
+            <div class="lg:col-span-5 space-y-6">
+
+                <!-- Vehicle Distribution Chart -->
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl">
+                    <div class="flex items-center justify-between mb-2">
+                        <h2 class="text-sm font-semibold text-slate-200 flex items-center gap-2">
+                            <i class="fa-solid fa-chart-pie text-cyan-400"></i> Phân Bố Phương Tiện
+                        </h2>
+                    </div>
+                    <div class="h-48 relative flex items-center justify-center">
+                        <canvas id="vehiclePieChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Recent Violations Gallery -->
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl flex flex-col">
+                    <div class="flex items-center justify-between mb-3">
+                        <h2 class="text-sm font-semibold text-slate-200 flex items-center gap-2">
+                            <i class="fa-solid fa-camera-retro text-red-400"></i> Bằng Chứng Vi Phạm Quá Tốc Độ
+                        </h2>
+                        <span class="text-xs text-slate-500">Mới nhất</span>
+                    </div>
+
+                    <div id="violations-container" class="space-y-2.5 max-h-[260px] overflow-y-auto pr-1">
+                        <div class="text-center py-8 text-slate-500 text-xs">
+                            Chưa ghi nhận trường hợp vi phạm tốc độ nào.
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Bottom Section: Detailed Logs Table -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+            <div class="px-6 py-4 border-b border-slate-800 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-list-check text-cyan-400"></i>
+                    <h2 class="text-sm font-semibold text-slate-200">Nhật Ký Phương Tiện Qua Vạch Gần Nhất</h2>
+                </div>
+                <span class="text-xs text-slate-400">Lưu trữ SQLite theo chuẩn ITS</span>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs">
+                    <thead class="bg-slate-800/50 text-slate-400 uppercase tracking-wider border-b border-slate-800 font-semibold">
+                        <tr>
+                            <th class="px-6 py-3">STT</th>
+                            <th class="px-6 py-3">Track ID</th>
+                            <th class="px-6 py-3">Loại Xe</th>
+                            <th class="px-6 py-3">Vận Tốc (km/h)</th>
+                            <th class="px-6 py-3">Trạng Thái</th>
+                            <th class="px-6 py-3">Hướng Di Chuyển</th>
+                            <th class="px-6 py-3">Thời Gian Ghi Nhận</th>
+                        </tr>
+                    </thead>
+                    <tbody id="history-tbody" class="divide-y divide-slate-800 text-slate-300">
+                        <tr>
+                            <td colspan="7" class="text-center py-6 text-slate-500">Đang đồng bộ dữ liệu...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-slate-900 border-t border-slate-800 py-3 text-center text-xs text-slate-500">
+        Hệ thống ITS Nâng cấp • Kiến trúc Single-Pass YOLO11 + Homography + FastAPI + SQLite
+    </footer>
+
+    <!-- Image Modal for Snapshot Preview -->
+    <div id="img-modal" class="fixed inset-0 bg-black/80 hidden z-50 flex items-center justify-center p-4" onclick="closeModal()">
+        <div class="max-w-2xl w-full bg-slate-900 border border-slate-700 rounded-xl overflow-hidden shadow-2xl" onclick="event.stopPropagation()">
+            <div class="p-3 bg-slate-800 flex justify-between items-center text-xs text-slate-300">
+                <span id="modal-title font-semibold">Ảnh Bằng Chứng Vi Phạm</span>
+                <button onclick="closeModal()" class="text-slate-400 hover:text-white text-base">&times;</button>
+            </div>
+            <img id="modal-img" src="" class="w-full h-auto">
+        </div>
+    </div>
+
+    <script>
+        let pieChart = null;
+
+        function initChart() {
+            const ctx = document.getElementById('vehiclePieChart').getContext('2d');
+            pieChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Xe máy', 'Ô tô', 'Xe tải', 'Xe buýt'],
+                    datasets: [{
+                        data: [0, 0, 0, 0],
+                        backgroundColor: ['#10b981', '#3b82f6', '#ec4899', '#f97316'],
+                        borderWidth: 2,
+                        borderColor: '#0f172a'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: { color: '#94a3b8', font: { size: 11 } }
+                        }
+                    }
+                }
+            });
+        }
+
+        async function fetchStats() {
+            try {
+                const res = await fetch('/api/stats');
+                const data = await res.json();
+                
+                document.getElementById('fps-val').innerText = `${data.current_fps || 0} FPS`;
+                document.getElementById('kpi-total').innerText = data.total || 0;
+                document.getElementById('kpi-motorcycles').innerText = data.motorcycles || 0;
+                document.getElementById('kpi-cars').innerText = data.cars || 0;
+                const heavy = (data.trucks || 0) + (data.buses || 0);
+                document.getElementById('kpi-heavy').innerText = heavy;
+                document.getElementById('kpi-speed').innerText = `${data.avg_speed || 0} km/h`;
+                document.getElementById('kpi-violations').innerText = data.violations || 0;
+                document.getElementById('kpi-speed-limit-badge').innerText = data.speed_limit || 50;
+
+                if (data.total > 0) {
+                    document.getElementById('kpi-motorcycles-pct').innerText = `${Math.round(data.motorcycles / data.total * 100)}% lưu lượng`;
+                    document.getElementById('kpi-cars-pct').innerText = `${Math.round(data.cars / data.total * 100)}% lưu lượng`;
+                    document.getElementById('kpi-heavy-pct').innerText = `${Math.round(heavy / data.total * 100)}% lưu lượng`;
+                }
+
+                if (pieChart) {
+                    pieChart.data.datasets[0].data = [
+                        data.motorcycles || 0,
+                        data.cars || 0,
+                        data.trucks || 0,
+                        data.buses || 0
+                    ];
+                    pieChart.update();
+                }
+            } catch (err) {
+                console.error("Lỗi fetchStats:", err);
+            }
+        }
+
+        async function fetchViolations() {
+            try {
+                const res = await fetch('/api/violations');
+                const violations = await res.json();
+                const container = document.getElementById('violations-container');
+                if (!violations || violations.length === 0) {
+                    container.innerHTML = `<div class="text-center py-8 text-slate-500 text-xs">Chưa ghi nhận trường hợp vi phạm tốc độ nào.</div>`;
+                    return;
+                }
+
+                container.innerHTML = violations.map(v => `
+                    <div class="flex items-center justify-between p-2.5 rounded-lg bg-slate-800/80 border border-red-900/50 hover:border-red-600 transition">
+                        <div class="flex items-center gap-3">
+                            ${v.snapshot_url ? `
+                                <img src="${v.snapshot_url}" onclick="openModal('${v.snapshot_url}')" 
+                                     class="w-12 h-12 object-cover rounded border border-red-500 cursor-pointer hover:scale-105 transition">
+                            ` : `<div class="w-12 h-12 bg-red-950 rounded flex items-center justify-center text-red-400 font-bold">#${v.track_id}</div>`}
+                            <div>
+                                <div class="font-bold text-slate-200">#${v.track_id} - ${v.label_vi}</div>
+                                <div class="text-[11px] text-slate-400">${v.timestamp} • ${v.direction || 'Xuôi chiều'}</div>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <span class="px-2 py-0.5 rounded bg-red-950 text-red-400 font-bold text-xs border border-red-800">
+                                ${v.speed_kmh} km/h
+                            </span>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (err) {
+                console.error("Lỗi fetchViolations:", err);
+            }
+        }
+
+        async function fetchHistory() {
+            try {
+                const res = await fetch('/api/history');
+                const list = await res.json();
+                const tbody = document.getElementById('history-tbody');
+                if (!list || list.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="7" class="text-center py-6 text-slate-500">Chưa có phương tiện nào qua vạch.</td></tr>`;
+                    return;
+                }
+
+                tbody.innerHTML = list.map((item, idx) => `
+                    <tr class="hover:bg-slate-800/40 transition">
+                        <td class="px-6 py-2.5 text-slate-400">${idx + 1}</td>
+                        <td class="px-6 py-2.5 font-mono font-semibold text-cyan-400">#${item.track_id}</td>
+                        <td class="px-6 py-2.5">${item.label_vi}</td>
+                        <td class="px-6 py-2.5 font-bold ${item.is_speeding ? 'text-red-400' : 'text-slate-200'}">
+                            ${item.speed_kmh > 0 ? `${item.speed_kmh} km/h` : '<span class="text-slate-500 italic">Đang đo</span>'}
+                        </td>
+                        <td class="px-6 py-2.5">
+                            ${item.is_speeding ? 
+                                '<span class="px-2 py-0.5 rounded bg-red-950 text-red-400 border border-red-800 text-[10px] font-bold">QUÁ TỐC ĐỘ</span>' : 
+                                (item.speed_kmh > 0 ? 
+                                    '<span class="px-2 py-0.5 rounded bg-emerald-950 text-emerald-400 border border-emerald-800 text-[10px]">Hợp lệ</span>' :
+                                    '<span class="px-2 py-0.5 rounded bg-amber-950 text-amber-400 border border-amber-800 text-[10px]">Vừa qua Vạch 1</span>'
+                                )}
+                        </td>
+                        <td class="px-6 py-2.5 text-slate-400">${item.direction || '---'}</td>
+                        <td class="px-6 py-2.5 text-slate-500 font-mono">${item.timestamp}</td>
+                    </tr>
+                `).join('');
+            } catch (err) {
+                console.error("Lỗi fetchHistory:", err);
+            }
+        }
+
+        function updateLinePreview(val) {
+            document.getElementById('line-val').innerText = `${Math.round(val * 100)}%`;
+        }
+
+        async function applySettings() {
+            const line1Val = parseFloat(document.getElementById('line1-slider').value);
+            const line2Val = parseFloat(document.getElementById('line2-slider').value);
+            const limitVal = parseFloat(document.getElementById('limit-input').value);
+            if (line1Val >= line2Val) {
+                alert('Vạch 1 (bắt đầu đo) phải ở phía trên Vạch 2 (đếm & chốt tốc độ)!');
+                return;
+            }
+            try {
+                await fetch('/api/settings', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ speed_limit: limitVal, y_count_ratio: line1Val, y_speed_ratio: line2Val })
+                });
+                alert('Đã cập nhật Vạch Đếm Xe & Vạch Tính Tốc Độ thành công!');
+                fetchStats();
+            } catch (e) {
+                alert('Lỗi cập nhật cấu hình: ' + e);
+            }
+        }
+
+        async function resetData() {
+            if (!confirm('Bạn có chắc chắn muốn đặt lại toàn bộ số liệu thống kê?')) return;
+            try {
+                await fetch('/api/reset', { method: 'POST' });
+                fetchStats();
+                fetchViolations();
+                fetchHistory();
+            } catch (e) {
+                alert('Lỗi đặt lại: ' + e);
+            }
+        }
+
+        function openModal(url) {
+            document.getElementById('modal-img').src = url;
+            document.getElementById('img-modal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('img-modal').classList.add('hidden');
+        }
+
+        // Khởi động
+        window.onload = () => {
+            initChart();
+            fetchStats();
+            fetchViolations();
+            fetchHistory();
+            // Polling cập nhật mỗi 1.5 giây
+            setInterval(() => {
+                fetchStats();
+                fetchViolations();
+                fetchHistory();
+            }, 1500);
+        };
+    </script>
+</body>
+</html>
+
